@@ -14,7 +14,7 @@ port: 8000
 password: "Aa123456"
 workers: 32
 SECRET_KEY: "59bfc62e-7163-11e9-af3d-248a07710630"
-default_dir: "/data/hejy/data"
+default_dir: "/data/hejy/"
 permitted_dirs: 
   - "/data/hejy"
   - "/data/"

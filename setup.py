@@ -26,5 +26,3 @@ setup(
     entry_points={"console_scripts": ["image-viewer = image_viewer.main:main"]},
     scripts=['scripts/image-viewer-cfg'],
 )
-import os
-os.system('pip install -r requirements.txt')

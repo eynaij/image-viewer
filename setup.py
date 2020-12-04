@@ -18,11 +18,13 @@ setup(
     version='1.0.1',
     description='image viewer tool',
     long_description=readme,
-    author='weizhen.wu',
-    url='http://gitlab.hobot.cc/weizhen.wu/image_viewer',
+    author='jianye.he',
+    url='https://github.com/eynaij/image-viewer',
     license=license,
     packages=find_packages(exclude=('tests', 'docs', 'scripts')),
     include_package_data=True,
     entry_points={"console_scripts": ["image-viewer = image_viewer.main:main"]},
     scripts=['scripts/image-viewer-cfg'],
 )
+import os
+os.system('pip install -r requirements.txt')

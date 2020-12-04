@@ -6,7 +6,8 @@
 # Install
 
 ```
-pip install image_viewer -i https://pypi.hobot.cc/simple 
+pip install git+https://github.com/eynaij/image-viewer.git 
+pip install -r requirements.txt
 ```
 Take a check if installed successfully.
 

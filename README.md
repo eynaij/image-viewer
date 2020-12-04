@@ -43,6 +43,7 @@ You might find something like this.
 ![](./docs/snapshot.png)
 
 Go to the directory containing images -> Clik '创建任务'
+
 Enjoy to use it.
 
 # ChangeLog

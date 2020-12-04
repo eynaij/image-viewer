@@ -11,8 +11,8 @@ cfg=${cfg_root}/image-viewer.yaml
 function create_cfg() {
     echo '''host: "0.0.0.0"
 port: 8000
-password: "Aa123456"
-workers: 32
+password: "123456"
+workers: 24
 SECRET_KEY: "59bfc62e-7163-11e9-af3d-248a07710630"
 default_dir: "/data/hejy/"
 permitted_dirs: 

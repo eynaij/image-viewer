@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-9">
+        <title>Browser</title>
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/css/bootstrap-select.min.css"/>
+        <script src="/static/js/jquery.min.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/bootstrap-select.min.js"></script>
+        <script type="text/javascript">
+            function createTask(obj) {
+                if($("#input_path").val()) {
+                    var path = $("#input_path").val();
+                } else {
+                    var path = $("#input_path").attr('placeholder');
+                }
+
+                if($("#input_formats").val()) {
+                    var formats = $("#input_formats").val();
+                } else {
+                    var formats = $("#input_formats").attr('placeholder');
+                }
+
+                if($("#input_offset").val()) {
+                    var offset = $("#input_offset").val();
+                } else {
+                    var offset = $("#input_offset").attr('placeholder');
+
+                }
+                if($("#input_stride").val()) {
+                    var stride = $("#input_stride").val();
+                } else {
+                    var stride = $("#input_stride").attr('placeholder');
+                }
+
+                var type = $("#select_type").val();
+
+                $('#input_path').val('');
+                $('#input_formats').val('');
+                $('#input_offset').val('');
+                $('#input_stride').val('');
+
+                $.ajax({
+                    type: "POST",
+                    url: "/api/tasks",
+                    data: {dir:path, formats:formats, offset:offset, stride:stride, type:type},
+                    dataType: "json",
+                    success: function(result) {
+                        if (result["status"]) {
+                            var task_id = result["data"]["task_id"];
+                            window.location.href = "/annotator?taskid="+task_id;
+                        } else {
+                            alert(result["message"]);
+                        }
+                    }
+                });
+            }
+
+            function GetQueryString(name) {
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                if(r!=null)return  unescape(r[2]); return null;
+            }
+
+            $(document).ready(function() {
+                $('#input_path').attr('placeholder', GetQueryString("dir"));
+                $('#input_formats').attr('placeholder', '*.jpg;*/*.jpg');
+                $('#input_offset').attr('placeholder', '0');
+                $('#input_stride').attr('placeholder', '1');
+            });
+
+        </script>
+        <style>
+            body{
+                margin:0px 10px 0px;
+            }
+            #top-buttons{
+                text-align: center;
+                height: 60%;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            #bottom-buttons{
+                text-align: center;
+                height: 60%;
+                margin-top: 40px;
+                margin-bottom: 10px;
+            }
+        </style>
+
+    </head>
+    <body>
+        <h2 style="text-align: center;">导航器</h2>
+        <div id="top-buttons">
+            <button type="button" id="top_task_create" class="btn btn-primary" data-toggle="modal" data-target="#taskCreator">创建任务</button>
+            <button type="button" id="top_task_list" class="btn btn-primary" onclick=javascript:window.location.href="/tasks">任务列表</button>
+        </div>
+        <table class="table table-striped table-responsive" style="width: 80%; margin:0 auto;">
+        <h4 style="width: 80%; margin:0 auto;">Directory listing for {{filepath}}</h4>
+        <br>
+        <tr>
+            <th>Name</th>
+        </tr>
+        <tbody>
+          {% for file in files %}
+            <tr>
+              <td><a href="{{file['url']}}">{{file['name']}}</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        </table>
+        <div id="bottom-buttons">
+            <button type="button" id="bottom_task_create" class="btn btn-primary" data-toggle="modal" data-target="#taskCreator">创建任务</button>
+            <button type="button" id="bottom_task_list" class="btn btn-primary" onclick=javascript:window.location.href="/tasks">任务列表</button>
+        </div>
+        <div class="modal fade" id="taskCreator" tabindex="-1" role="dialog" aria-labelledby="title" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="title">创建数据</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form" class=form-horizontal>
+                            <div class="form-group">
+                                <label for="input_path" class="col-sm-2 control-label">图像路径</label>
+                                <div class="col-sm-9">  
+                                    <input type="text" class="form-control" id="input_path">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="input_formats" class="col-sm-2 control-label">匹配规则</label>
+                                <div class="col-sm-9">  
+                                    <input type="text" class="form-control" id="input_formats">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="input_offset" class="col-sm-2 control-label">偏移</label>
+                                <div class="col-sm-9">  
+                                    <input type="text" class="form-control" id="input_offset">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="input_stride" class="col-sm-2 control-label">步长</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="input_stride">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="type" class="col-sm-2 control-label">类型</label>  
+                                <div class="col-sm-9">  
+                                    <select class="form-control selectpicker" id=select_type>
+                                        <option value="image">图像/视频</option>
+                                        <option value="hds_json">hds json</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="createTask();">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div> <!--模态框end-->
+    </body>
+</html>

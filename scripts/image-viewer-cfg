@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+cfg_root=$HOME/.image-viewer
+
+if [ ! -d $cfg_root ];then
+    mkdir -p $cfg_root
+fi
+
+cfg=${cfg_root}/image-viewer.yaml
+
+function create_cfg() {
+    echo '''host: "0.0.0.0"
+port: 8000
+password: "Aa123456"
+workers: 32
+SECRET_KEY: "59bfc62e-7163-11e9-af3d-248a07710630"
+default_dir: "/data/hejy/data"
+permitted_dirs: 
+  - "/data/hejy"
+  - "/data/"
+database: "image-viewer.db"''' > ${cfg}
+}
+
+if [ -f $cfg ];then
+    read -p "$cfg exists, override? [y/n]" answer
+    if [[ $answer = "y" ]]; then
+        create_cfg
+        echo "new cfg saved to $cfg"
+    else
+        exit
+    fi
+else
+    create_cfg
+    echo "new cfg saved to $cfg"
+fi

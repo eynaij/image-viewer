@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head> 
+		<meta charset="utf-8"> 
+		<title>图像可视化页面</title> 
+		<!--script src="{{url_for('static', filename='js/jquery-latest.jss')}}"></script-->
+		<!--script src="static/js/jquery-latest.js"></script-->
+		<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">  
+		<script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<style>
+		    .d_box{
+		        margin-top:10px;
+		        height: 200px;
+		        text-align: center;
+		    }
+		    .d_img{
+		        float:center;
+		        padding-top: 20px;
+		    }
+		    .d_img img{
+		    	height: 100%;
+		    	width: 200px
+		    }
+		</style>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				dir = GetQueryString("dir");
+				if(GetQueryString("page")) {
+					page = GetQueryString("page")
+				} else {
+					page = "1";
+				}
+				if(GetQueryString("pagesize")) {
+					pagesize = GetQueryString("pagesize");
+				} else {
+					pagesize = "20";
+				}
+				$.ajax({
+					type: "GET",
+					url: "/imagelist",
+					data: {dir:dir,page:page,pagesize:pagesize},
+					dataType: "json",
+					success: function(data) {
+						for (var i = 0; i < data.length; i++) {
+							var img_url = data[i]['url'];
+							var img_key = data[i]['key'];
+							var selected = data[i]['selected'];
+							var start_html = '<div class="d_box">';
+							var img_html = '<div class="d_img"> <img src='+img_url+'><label><input id='+img_key+' type="checkbox" name="pic">'+img_key+'</label></div>'
+							var word_html = '<div class="d_checkbox"><input type="checkbox">'+img_key+'</div>';
+							var end_html = "</div>";
+							$("#class_menu").append(start_html +img_html + end_html);
+							var start_html = "<div class=\"col-md-12 column\"><div class=\"row clearfix\" >";
+							var word_html = "<div class=\"col-md-2 column\" style=\"display: inline;text-align: center\">"+img_key+"</div>";
+							var end_html = "</div></div>";
+							$("#pictures").append(start_html + word_html + end_html);
+
+                            img_html = "<div class=\"col-md-1 column\"><img class=\"img-responsive\" src="+img_url+" id="+img_key+" height=400"+" selected="+selected+" onclick=\"selectImage(this)\""+"\"><h5 style=\"text-align:center\""+"<\div>";
+                            
+							$("#pictures").append(start_html + img_html + end_html);
+						}
+					}
+				});
+			});
+
+            function selectImage(obj) {
+//                $.ajax({
+//                        type: "POST",
+ //                       url: "/submitter",
+
+                alert (obj.id.toString());
+                alert(obj.selected.toString());
+            }
+            
+            function pageSwitch(obj) {
+                if(GetQueryString("page")){
+                   page = GetQueryString("page");
+                } else {
+                   page = 1;
+                }
+                var id_str = obj.id.toString();
+                http = window.location.href;
+//                <!-- 判断最后一个字符串是不是问号 -->
+//                if(http[http.length-1] != "?") {
+//                    http = http + "?";
+//                }
+                if(http.indexOf("pagesize=") == -1) {
+                    http = http + "&pagesize=20";
+                }
+                if(http.indexOf("page=") == -1) {
+                    http = http + "&page=1";
+                }
+                window.location.href = http;
+                http = http.split("page=");
+                http_url = http[0];
+                http_str = http[1].toString();
+                var page_end = http_str.indexOf("&");
+                if(page_end != "-1") {
+                    page_str = http_str.substring(page_end+1,http_str.length);
+                }
+                if(id_str == "prePage") {
+                    if (page == "1") {
+                        alert("当前已是第一页");
+                        exit();
+                    } 
+                    jump_page = parseInt(page) - 1;
+                }
+                if(id_str == "nextPage") { 
+                    jump_page = parseInt(page) + 1;
+                }
+                if(page_end != "-1"){
+                    jump_url = http_url+"page="+jump_page+"&"+page_str;
+                }
+                else {
+                    jump_url = http_url+"page="+jump_page;
+                }
+                window.location.href = jump_url;
+            }
+            
+            function GetQueryString(name) {
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                    if(r!=null)return  unescape(r[2]); return null;
+            }
+
+            function nextPage(){
+            	var checked = '';
+				var nochecked = '';
+				$('input:checkbox[name=pic]').each(function(){
+					if($(this).is(':checked')){
+						checked +=$(this).attr('id')+',';
+					}else 
+					nochecked += $(this).attr('id')+',';
+				});
+				alert(checked);
+				alert(nochecked);
+            }
+		</script>
+
+	</head>
+	<body>
+		<h3 style="text-align: center;">图像可视化页面</h3>
+		<div style="text-align: center;height: 60%;">
+			<button type="button" id="prePage" class="btn btn-primary" onclick="pageSwitch(this)">上一页</button>
+			<button type="button" id="nextPage" class="btn btn-primary" onclick="nextPage();pageSwitch(this)">下一页</button>
+		</div>
+		<div class="row clearfix" id="pictures">
+		</div>
+		<div style="text-align: center;height: 60%;">
+			<button type="button" id="prePage" class="btn btn-primary" onclick="pageSwitch(this)">上一页</button>
+			<button type="button" id="nextPage" class="btn btn-primary" onclick="nextPage();pageSwitch(this)">下一页</button>
+		</div>
+	</body>
+</html>

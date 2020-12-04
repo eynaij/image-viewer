@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+        <meta charset="utf-8"> 
+        <title>图像选择页面</title> 
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <script src="/static/js/jquery.min.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <style>
+            .center {
+                text-align: center;
+            }
+            .row {
+                margin-right: 0px;
+                margin-left: 0px;
+            }
+            .div_txt {
+                font-size:12px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .img_box{
+                display: inline-block;
+                margin-top: 2px;
+                margin-left: 2px;
+                margin-right: 2px;
+                margin-bottom: 2px;
+                text-align: center;
+            }
+            .selected_img img{
+                border: 5px solid red;
+            }
+            .unselected_img img{
+            }
+            #top-buttons{
+                text-align: center;
+                height: 60%;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            #bottom-buttons{
+                text-align: center;
+                height: 60%;
+                margin-top: 40px;
+                margin-bottom: 10px;
+            }
+        </style>
+        <script type="text/javascript">
+            function drawImages() {
+                var task_id = GetQueryString('taskid');
+                var page = $("#page").val();
+                var pagesize = $("#pagesize").val();
+                var width = $("#width").val();
+                var config = $("#config").val();
+
+                $.ajax({
+                    type: "GET",
+                    url: "/api/tasks/"+task_id+"/images",
+                    data: {pagesize:pagesize,page:page},
+                    async: true,
+                    dataType: "json",
+                    success: function(result) {
+                        if (result['status']) {
+                            scrollTo(0,0);
+                            $('#pictures').empty();
+                            // 修改page_text
+                            $('#top_page_text').text("当前第 "+page+" 页, "+"每页 "+pagesize+" 条");
+                            $('#bottom_page_text').text("当前第 "+page+" 页, "+"每页 "+pagesize+" 条");
+
+                            // 同步模态框数据
+                            $('#input_page').attr('placeholder', page);
+                            $('#input_pagesize').attr('placeholder', pagesize);
+                            $('#input_width').attr('placeholder', width);
+                            $('#input_config').val(config);
+
+                            var images = result['data']['images'];
+                            for (var i = 0; i < images.length; i++) {
+                                var img_id = images[i]['image_id'];
+                                var img_url = images[i]['url'];
+                                var img_idx = images[i]['idx'];
+                                var img_key = images[i]['image_key'];
+                                var selected = images[i]['selected'];
+                                var img_box_html = $('<div></div>').attr('class', 'img_box');
+                                img_width = width;
+                                if (img_key.endsWith('.mp4')) {
+                                    var img_html = $("<div></div>").attr('id', 'div_'+img_id).append(
+                                            $("<video></video>").attr('preload', 'none').attr('controls', 'controls').attr('src', img_url).attr('width', img_width).attr('title', img_key).attr('id', img_id)
+                                        );
+                                } else {
+                                    var img_html = $("<div></div>").attr('id', 'div_'+img_id).append(
+                                            $("<img></img>").attr('src', img_url+'?config='+config+'&_='+Math.random()).attr('width', img_width).attr('title', img_key).attr('id', img_id).attr('onclick', 'selectImage(this)')
+                                        );
+                                    if (selected==1) {
+                                        img_html.attr('class', 'selected_img');
+                                    } else {
+                                        img_html.attr('class', 'unselected_img');
+                                    }
+                                }
+                                img_box_html.append(img_html);
+                                var text_html = $('<div></div>').attr('class', 'div_txt').text(img_idx+': '+img_key);
+                                text_html.css('width', img_width);
+                                img_box_html.append(text_html);
+                                $("#pictures").append(img_box_html);
+                            }
+                        } else {
+                            alert(result['message']);
+                        }
+                        detectEndPage(images.length);
+                    }
+                });
+             }
+
+            // 检测末页
+            function detectEndPage(len) {
+                if(len == 0) {
+                    alert("没有更多内容.");
+//                    alert("后面没有啦, 即将返回上一页.");
+//                    var new_page = parseInt($('#page').val())-1; 
+//                    $('#page').val(new_page);
+//                    drawImages();
+                }
+            }
+
+            $(document).ready(function() {
+                drawImages();
+            });
+
+            function selectImage(obj) {
+                var divEle = document.getElementById('div_'+obj.id);
+                if (divEle.className == "selected_img") {
+                    new_value = "0";
+                } else {
+                    new_value = "1";
+                }
+                var dir = $('#dir').val();
+                $.ajax({
+                    type: "POST",
+                    url: "/api/submitter",
+                    data: {image_id:obj.id,selected:new_value},
+                    dataType: "json",
+                    success: function(result) {
+                        if (result['status']) {
+                            if (new_value=="1") {
+                                divEle.className="selected_img";
+                            } else {
+                                divEle.className="unselected_img";
+                            }
+                        } else {
+                            alert ("failure");
+                        }
+                    }
+                });
+            }
+
+            function pageSwitch(obj) {
+                var page = $('#page').val();
+                var id_str = obj.id.toString();
+                if(id_str.indexOf("prePage") != "-1") {
+                    if (page == "1") {
+                        alert("当前已是第一页");
+                        return ;
+                    } 
+                    $("#page").val(parseInt(page)-1);
+                }
+                if(id_str.indexOf("nextPage") != "-1") { 
+                    $("#page").val(parseInt(page)+1);
+                }
+                drawImages();
+            }
+
+            function setPageFromModal() {
+                if($("#input_page").val()) {
+                    $("#page").val($("#input_page").val());
+                }
+                if($("#input_pagesize").val()) {
+                    $("#pagesize").val($("#input_pagesize").val());
+                }
+                if($("#input_width").val()) {
+                    $("#width").val($("#input_width").val());
+                }
+                if($("#input_config").val()) {
+                    $("#config").val($("#input_config").val());
+                }
+
+                $('#input_page').val('');
+                $('#input_pagesize').val('');
+                $('#input_width').val('');
+
+                drawImages();
+            }
+
+            function getResultPage(obj) {
+                var task_id = GetQueryString('taskid');
+                window.open("/results/task_" + task_id + '.json');
+//                window.location.href = "/results/task_" + task_id + '.json';
+            }
+            function getBrowserPage(obj) {
+                var task_id = GetQueryString('taskid')
+                window.location.href = "/browser?taskid=" + task_id;
+            }
+
+            function GetQueryString(name) {
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                    if(r!=null)return  unescape(r[2]); return null; }
+            
+        </script>
+
+    </head>
+    <body>
+        <h2 style="text-align: center;">图像选择页面</h2>
+        <input type="hidden" name="page" id="page" value="1">
+        <input type="hidden" name="pagesize" id="pagesize" value="30">
+        <input type="hidden" name="width" id="width" value=280>
+        <input type="hidden" name="config" id="config" value='{"classname": "vehicle"}'>
+        <div id="top-buttons">
+            <button type="button" id="top_browserPage" class="btn btn-primary" onclick=javascript:window.location.href="/browser">导航器</button>
+            <button type="button" id="top_tasksPage" class="btn btn-primary" onclick=javascript:window.location.href="/tasks">任务列表</button>
+            <button type="button" id="top_prePage" class="btn btn-primary" onclick="pageSwitch(this)">上一页</button>
+            <button type="button" id="top_page_text" class="btn btn-primary" data-toggle="modal" data-target="#setPage"></button>
+            <button type="button" id="top_nextPage" class="btn btn-primary" onclick="pageSwitch(this)">下一页</button>
+            <button type="button" id="top_result_btn" class="btn btn-primary" onclick="getResultPage(this)">查看结果</button>
+            <button type="button" id="top_backPage" class="btn btn-primary" onclick=javascript:history.go(-1)>返回</button>
+        </div>
+        <div class=center>
+        <div class="row clearfix" id="pictures">
+        </div>
+        </div>
+        <div id="bottom-buttons">
+            <button type="button" id="bottom_browserPage" class="btn btn-primary" onclick=javascript:window.location.href="/browser">导航器</button>
+            <button type="button" id="bottom_tasksPage" class="btn btn-primary" onclick=javascript:window.location.href="/tasks">任务列表</button>
+            <button type="button" id="bottom_prePage" class="btn btn-primary" onclick="pageSwitch(this)">上一页</button>
+            <button type="button" id="bottom_page_text" class="btn btn-primary" data-toggle="modal" data-target="#setPage"></button>
+            <button type="button" id="bottom_nextPage" class="btn btn-primary" onclick="pageSwitch(this)">下一页</button>
+            <button type="button" id="bottom_result_btn" class="btn btn-primary" onclick="getResultPage(this)">查看结果</button>
+            <button type="button" id="bottom_backPage" class="btn btn-primary" onclick=javascript:history.go(-1)>返回</button>
+        </div>
+
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="setPage" tabindex="-1" role="dialog" aria-labelledby="title" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="title">选择页码，每页数量</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form">
+                            <div class="form-group">
+                                <label for="input_page">页码</label>
+                                <input type="text" class="form-control" id="input_page">
+                            </div>
+                            <div class="form-group">
+                                <label for="input_pagesize">每页数量</label>
+                                <input type="text" class="form-control" id="input_pagesize">
+                            </div>
+                            <div class="form-group">
+                                <label for="input_width">图像宽度</label>
+                                <input type="text" class="form-control" id="input_width">
+                            </div>
+                            <div class="form-group">
+                                <label for="input_config">config</label>
+                                <textarea class="form-control" id="input_config"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="setPageFromModal();">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div> <!--模态框end-->
+
+    </body>
+</html>

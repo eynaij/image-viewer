@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Browser</title>
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <script src="/static/js/jquery.min.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <style>
+            #top-buttons{
+                text-align: center;
+                height: 60%;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+        </style>
+        <script type="text/javascript">
+            function switchPasswordDisplay(id, id2) {
+                var pwd_obj = $("#"+id);
+                var switch_obj = $("#"+id2);
+                if(pwd_obj.attr('type') == 'text') {
+                    pwd_obj.attr('type','password');
+                    switch_obj.attr("src", "/static/images/invisible.png");
+                } else {
+                    pwd_obj.attr('type','text');
+                    switch_obj.attr("src", "/static/images/visible.png");
+                }
+            }
+
+            function handleLogin() {
+                $.ajax({
+                    url: "/api/auth",
+                    type: "POST",
+                    dataType: "json",
+                    async: false,
+                    data: {password:$("#input_login_password").val()},
+                    success: function(resp) {
+                        if (resp.status) {
+                            alert(resp.message);
+                            $("#loginModal").modal('hide'); 
+                            $("#input_login_password").val("");
+                            getLoginInfo();
+                        } else {
+                            alert(resp.message);
+                        }
+                    }
+                });
+            }
+
+            function handleLogout() {
+                $.ajax({
+                    url: "/api/auth",
+                    type: "DELETE",
+                    dataType: "json",
+                    async: false,
+                    success: function(resp) {
+                        if (resp.status) {
+                            getLoginInfo();
+                        }
+                        alert(resp.message);
+                    }
+                });
+            }
+
+            function getLoginInfo() {
+                $.ajax({
+                    url: "/api/auth",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (resp) {
+                        $("#auth").empty();
+                        if (resp.status) {
+                            $("#auth").removeAttr("data-toggle").removeAttr("data-target").attr("onclick", "handleLogout();").text("注销");
+                        } else {
+                            $("#auth").removeAttr("onclick").attr("data-toggle", "modal").attr("data-target", "#loginModal").text("登录");
+                        }
+                    }
+                });
+            }
+
+            function deleteTask(task_id) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "/api/tasks/"+task_id,
+                    dataType: "json",
+                    success: function(result) {
+                        if (result.status) {
+			                drawTaskList();
+                        }
+                        alert(result.message);
+                    }
+                });
+            }
+
+			function drawTaskList() {
+                getLoginInfo();
+				$.ajax({
+					type: "GET",
+					url: "/api/tasks",
+					dataType: "json",
+					success: function(result) {
+						if (result["status"]) {
+                            $('#tasklist').empty();
+							var tasks = result["data"]["tasks"];
+							for (i = 0; i < tasks.length; i++) {
+								task = tasks[i];
+                                tr_html = $("<tr></tr>");
+                                tr_html.append($("<td></td>").text(task["task_id"]));
+                                tr_html.append($("<td></td>").append($("<a></a>").text(task["directory_key"]).attr("href", "/annotator?taskid="+task["task_id"])));
+                                tr_html.append($("<td></td>").text(task["create_time"]));
+                                tr_html.append($("<td></td>").append($("<a></a>").text('delete').attr("href", "javascript:void(0);").attr("onclick", "deleteTask("+task['task_id']+");")));
+								$("#tasklist").append(tr_html);
+							}
+						} else {
+							alert(result["status"]);
+							alert(result["message"]);
+						}
+					}
+				});
+			}
+
+            function GetQueryString(name) {
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                if(r!=null)return  unescape(r[2]); return null;
+            }
+			
+            $().ready(function(){
+			    drawTaskList();
+            });
+
+        </script>
+    </head>
+    <body>
+        <h2 style="text-align: center;">任务列表</h2>
+        <div id="top-buttons">
+            <button type="button" class="btn btn-primary" onclick=javascript:window.location.href="/browser">导航器</button>
+            <!--button id=auth></button-->
+            <button type="button" class="btn btn-primary" id=auth>登录</button>
+            <button type="button" class="btn btn-primary" onclick=javascript:history.go(-1)>返回</button>
+        </div>
+        </ul>
+        <ul>
+        <table class="table table-striped table-responsive" style="width: 80%; margin:0 auto;">
+        <br>
+        <tr>
+            <th>ID</th>
+            <th>Directory</th>
+            <th>Time Created</th>
+            <th></th>
+        </tr>
+        <tbody id=tasklist>
+            <!--div id=tasklist>
+            </div-->
+        </tbody>
+        </table>
+        </ul>
+        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="title" aria-hidden="true">
+            <div class="modal-dialog" style="width:400px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="title">Login</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form">
+                            <div class="form-group">
+                                <input type=password class="form-control" id="input_login_password" placeholder=Password value="">
+                                <a href='javascript:void(0);'>
+                                    <img id="switchVisibilityLogin" onclick="switchPasswordDisplay('input_login_password', 'switchVisibilityLogin');" src="/static/images/invisible.png" style="width:20px">
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick=handleLogin();>Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

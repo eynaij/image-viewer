@@ -1,0 +1,6 @@
+include LICENSE
+include image_viewer/static/css/*
+include image_viewer/static/images/*
+include image_viewer/static/js/*
+include image_viewer/templates/*
+include image_viewer/schema.sql

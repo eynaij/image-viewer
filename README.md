@@ -1,6 +1,6 @@
 # image-viewer
 
-`image-viewer` is an awesome tool for algorithm engineer to check and share data remotely.
+`image-viewer` is an awesome tool to check and share data remotely.
 
 
 # Install
@@ -9,7 +9,7 @@
 python setup.py install
 pip install -r requirements.txt
 ```
-Take a check if installed successfully.
+Take a check if it installed successfully.
 
 ```
 image-viewer --version
@@ -20,15 +20,15 @@ image-viewer --version
 ```
 image-viewer-cfg
 ```
-It will generate a default yaml in `~/.image-viewer/image-viewer.yaml`
+It will generate a default yaml -- `~/.image-viewer/image-viewer.yaml`
 
 You need to edit `port` , `permiitted_dirs` and `default_dir`.
 
-If you don't have `port`, you may refer to your leader for applying port on developing machines.
+If you don't have access to the `port`, you have to refer to the administrator.
 
-`permiitted_dirs` is where you allow image-viewer to access data.
+`permiitted_dirs` is where you allow image-viewer to access.
 
-`default_dir` should be one of `permiitted_dirs`
+`default_dir` should be one of `permiitted_dirs`.
 
 # Run
 

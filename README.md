@@ -6,7 +6,7 @@
 # Install
 
 ```
-pip install git+https://github.com/eynaij/image-viewer.git 
+python setup.py install
 pip install -r requirements.txt
 ```
 Take a check if installed successfully.

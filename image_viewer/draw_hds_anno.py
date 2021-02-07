@@ -149,7 +149,7 @@ if __name__ == '__main__':
       anno = json.loads(anno_l[idx])
       imname = anno['image_key']
       imfile = os.path.join(img_dir, imname)
-      print imfile
+      print(imfile)
       im = cv2.imread(imfile)
       im = draw_annotation(im, anno, args.classname, 2, show_mode, show_legend)
       cv2.putText(im,'(%d/%d):%s' %(idx + 1, len(anno_l), imname), (20, 20), cv2.FONT_HERSHEY_PLAIN , 1, (255, 0, 0), 1)
